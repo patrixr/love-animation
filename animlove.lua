@@ -28,6 +28,7 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 --
 -- @todo document
 -- @todo error management
+-- @todo the path in the animation file should be relative to the file's location
 --
 
 --

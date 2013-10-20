@@ -23,15 +23,6 @@ function love.keypressed(key)
 	end
 end
 
-function love.keyreleased(key)
-	-- if key == 'up'
-	-- or key == 'w'
-	-- or key == 'down'
-	-- or key == 's'then
-	-- 	Player.speed = 0
-	-- end
-end
-
 function love.draw()
 
 	anim:draw()
