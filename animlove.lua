@@ -24,10 +24,32 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 ]]
 
 --
+-- LOVE2D ANIMATION
 --
+-- @todo document
+-- @todo error management
 --
+
 --
---
+-- The animation class
+-- Loads an animation file (containing a path to the image)
+-- Check the animation file template for the format
+-- 
+-- @member filepath the path of the animation file
+-- @member descriptor the object loaded from the file (describes the animation frames)
+-- @member currentState the state the animation is in. Each state is a line in the image
+-- @member currentFrame the frame (of the current state) the animation is displaying
+-- @member tick the amount of time the current frame has been displayed
+-- @member speedMultiplier a multiplier used to control the animation speed programatically
+-- @member active whether the animation is running (or is paused)
+-- @member texture the image loaded
+-- @member x horizontal coordinate
+-- @member y vertical coordinate
+-- @member rotation rotation angle in radians
+-- @member relativeOriginX the x origin as a multiplier of the sprite's width
+--	(ex : 1 for right, 0 for left)
+-- @member relativeOriginY the y origin as a multiplier of the sprite's height
+-- @member visible boolean, whether the sprite is visible
 --
 LoveAnimation = {
 	-- Members
@@ -39,7 +61,6 @@ LoveAnimation = {
 	speedMultiplier = 1,
 	active = true,
 	texture = nil,
-	tick = 0,
 	x = 0,
 	y = 0,
 	rotation = 0,
