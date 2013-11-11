@@ -35,7 +35,7 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 -- The animation class
 -- Loads an animation file (containing a path to the image)
 -- Check the animation file template for the format
--- 
+--
 -- @member filepath the path of the animation file
 -- @member descriptor the object loaded from the file (describes the animation frames)
 -- @member currentState the state the animation is in. Each state is a line in the image
@@ -68,11 +68,18 @@ LoveAnimation = {
 	relativeOriginX = 0,
 	relativeOriginY = 0,
 	visible = true,
+	flipX = 1,
 
-	-- Static
-	__loadedDescriptors = {}
+	_stateEndCallbacks = {},
+	_stateStartCallbacks = {},
+
 }
 LoveAnimation.__index = LoveAnimation
+
+
+-- Static
+local __loadedDescriptors = {}
+
 
 -- Local function
 local check_descriptor_integrity = function(desc)
@@ -82,27 +89,43 @@ end
 --
 -- @brief Creates a new animation
 -- @param filepath the file describing the animation
+-- @param imagePath [optional] an alternative image
 -- @return the animation object
 --
-function LoveAnimation.new(filepath)
+function LoveAnimation.new(filepath, imagePath)
 
 	local desc = nil
-	if LoveAnimation.__loadedDescriptors[filepath] then
-		desc = LoveAnimation.__loadedDescriptors[filepath]
+	if __loadedDescriptors[filepath] then
+		desc = __loadedDescriptors[filepath]
 	else
 		local chunk = love.filesystem.load(filepath)
 		desc = chunk()
 		check_descriptor_integrity(desc);
-		LoveAnimation.__loadedDescriptors[filepath] = desc;
+		__loadedDescriptors[filepath] = desc;
 	end
 
 	local new_anim = {}
 	setmetatable(new_anim, LoveAnimation)
 	new_anim.filepath = filepath
 	new_anim.descriptor = desc
-	new_anim.texture = love.graphics.newImage(desc.imageSrc)
+	new_anim.texture = imagePath and love.graphics.newImage(imagePath) or love.graphics.newImage(desc.imageSrc)
 	new_anim:resetAnimation()
 
+	return new_anim
+end
+
+--
+-- @brief Clones the animation (avoids reloading)
+-- @return the new animation object
+--
+function LoveAnimation:clone()
+	local new_anim = {}
+	setmetatable(new_anim, LoveAnimation)
+
+	new_anim.filepath = self.filepath
+	new_anim.descriptor = self.descriptor
+	new_anim.texture = self.texture
+	new_anim:resetAnimation()
 	return new_anim
 end
 
@@ -123,8 +146,17 @@ function LoveAnimation:update(dt)
 		-- switch to the next frame
 		self.currentFrame = self.currentFrame + 1
 		if self.currentFrame >= state_descriptor.frameCount then
-			-- last frame reached, set next state	
+			-- last frame reached, set next state
 			self.currentFrame = 0
+			--callbacks
+			if self._stateEndCallbacks[self.currentState] then
+				self._stateEndCallbacks[self.currentState](self)
+			end
+			if state_descriptor.nextState ~= self.currentState and
+				self._stateStartCallbacks[state_descriptor.nextState] then
+				self._stateStartCallbacks[state_descriptor.nextState](self)
+			end
+
 			self.currentState = state_descriptor.nextState
 		end
 		-- reset tick
@@ -172,7 +204,8 @@ function LoveAnimation:draw()
 		self.x,
 		self.y,
 		self.rotation,
-		1, 1, -- scale
+		self.flipX, -- negative scale to flip
+		1, -- scale
 		self.relativeOriginX * state_descriptor.frameW,
 		self.relativeOriginY * state_descriptor.frameH,
 		0,0)
@@ -189,9 +222,28 @@ function LoveAnimation:setState(state)
 		self.currentState = state
 		self.tick = 0
 		self.currentFrame = 0
+
+		if state ~= self.currentState and self._stateStartCallbacks[state] then
+			self._stateStartCallbacks[state]()
+		end
+
 	end
 
 end
+
+--
+--
+--
+--
+function LoveAnimation:setCurrentFrame(f)
+
+	local state_descriptor = self.descriptor.states[self.currentState]
+	if f < state_descriptor.frameCount then
+		self.currentFrame = f
+	end
+
+end
+
 
 --
 --
@@ -214,6 +266,30 @@ function LoveAnimation:resetAnimation()
 	self.currentFrame = 0
 	self.rotation = 0
 
+end
+
+
+local _CheckCollision = function(ax1,ay1,aw,ah, bx1,by1,bw,bh)
+  local ax2,ay2,bx2,by2 = ax1 + aw, ay1 + ah, bx1 + bw, by1 + bh
+  return ax1 < bx2 and ax2 > bx1 and ay1 < by2 and ay2 > by1
+end
+
+--
+--
+--
+--
+function LoveAnimation:intersects(x,y,width,height)
+	local h = height or 1
+	local w = width or 1
+	local state_descriptor = self.descriptor.states[self.currentState]
+
+	return _CheckCollision(
+		self.x - (self.relativeOriginX * state_descriptor.frameW),
+		self.y - (self.relativeOriginY * state_descriptor.frameH),
+		state_descriptor.frameW,
+		state_descriptor.frameH,
+		x,y,w,h
+	)
 end
 
 --
@@ -274,6 +350,22 @@ function LoveAnimation:setRelativeOrigin(ox, oy)
 	self.relativeOriginY = oy
 end
 
+
+function LoveAnimation:flipHorizontal()
+	self.flipX = -1 * self.flipX
+end
+
+function LoveAnimation:getFrameWidth()
+	local state_descriptor = self.descriptor.states[self.currentState]
+	return state_descriptor.frameW
+end
+
+function LoveAnimation:getFrameHeight()
+	local state_descriptor = self.descriptor.states[self.currentState]
+	return state_descriptor.frameH
+end
+
+
 --
 -- EVENTS
 --
@@ -284,6 +376,8 @@ end
 --
 function LoveAnimation:onStateEnd(state, callback)
 
+	self._stateEndCallbacks[state] = callback
+
 end
 
 --
@@ -291,6 +385,8 @@ end
 --
 --
 function LoveAnimation:onStateStart(state, callback)
+
+	self._stateStartCallbacks[state] = callback
 
 end
 

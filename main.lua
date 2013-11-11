@@ -8,11 +8,11 @@
 require('animlove')
 
 local anim = nil
+local stringtest = "."
 
 function love.load(arg)
 	love.graphics.setBackgroundColor({0, 0, 0})
 	anim = LoveAnimation.new('sprites/animation1.lua');
-	anim:setSpeedMultiplier(0)
 end
 
 function love.keypressed(key)
@@ -27,6 +27,7 @@ function love.draw()
 
 	anim:draw()
 	love.graphics.print(anim.currentState, 300, 300)
+	love.graphics.print(stringtest, 400, 400)
 
 end
 
