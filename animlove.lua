@@ -147,11 +147,19 @@ function LoveAnimation:update(dt)
 		self.currentFrame = self.currentFrame + 1
 		if self.currentFrame >= state_descriptor.frameCount then
 			-- last frame reached, set next state
+
+			if not state_descriptor.nextState then
+				self.currentFrame = state_descriptor.frameCount - 1
+				self.tick = 0
+				return
+			end
+
 			self.currentFrame = 0
 			--callbacks
 			if self._stateEndCallbacks[self.currentState] then
 				self._stateEndCallbacks[self.currentState](self)
 			end
+			
 			if state_descriptor.nextState ~= self.currentState and
 				self._stateStartCallbacks[state_descriptor.nextState] then
 				self._stateStartCallbacks[state_descriptor.nextState](self)
