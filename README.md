@@ -40,7 +40,7 @@ function love.draw()
 end
 ```
 
-**Changing the animation atate**
+**Changing the animation state**
 ```lua
 anim:setState("jump")
 ```
