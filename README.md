@@ -39,3 +39,8 @@ function love.draw()
 
 end
 ```
+
+**Changing the animation atate**
+```lua
+anim:setState("jump")
+```
