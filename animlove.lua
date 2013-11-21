@@ -29,6 +29,8 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 -- @todo document
 -- @todo error management
 -- @todo the path in the animation file should be relative to the file's location
+-- @todo more flexible events ?
+-- @todo load an animation with an already loaded image
 --
 
 --
@@ -130,8 +132,8 @@ function LoveAnimation:clone()
 end
 
 --
---
---
+-- @brief Updates the animation state and frame. Called in the update loop
+-- @param dt the elapsed time in seconds (floating point)
 --
 function LoveAnimation:update(dt)
 
@@ -176,7 +178,7 @@ function LoveAnimation:update(dt)
 end
 
 --
---
+-- @brief Draws the sprite on the screen. Called in the drawing loop
 --
 --
 function LoveAnimation:draw()
@@ -221,8 +223,9 @@ function LoveAnimation:draw()
 end
 
 --
---
---
+-- @brief Sets the state of the animation
+-- @param state (string) a state specified in the animation file that we want to switch to
+-- e.g anim:setState("jump")
 --
 function LoveAnimation:setState(state)
 
@@ -240,29 +243,39 @@ function LoveAnimation:setState(state)
 end
 
 --
+-- @brief Gets the state the animation is currently in
+-- @return (string) the current state
 --
+function LoveAnimation:getCurrentState()
+	return self.currentState;
+end
+
 --
+-- @brief Sets the frame of the animation state
+-- @param f (integer) the frame number
 --
 function LoveAnimation:setCurrentFrame(f)
 
 	local state_descriptor = self.descriptor.states[self.currentState]
 	if f < state_descriptor.frameCount then
 		self.currentFrame = f
+	else
+		self.currentFrame = state_descriptor.frameCount - 1 -- Is that wise ?
 	end
 
 end
 
-
 --
---
---
+-- @brief Allows to speed up the animation with a multiplier
+-- @param sm (positive floating point) the multiplier
 --
 function LoveAnimation:setSpeedMultiplier(sm)
-	self.speedMultiplier = sm
+	-- negative multiplier support ? backwards animations ? to think abt it
+	self.speedMultiplier = math.abs(sm)
 end
 
 --
---
+-- @brief Returns the animation to it's inital state,frame,speed,rotation
 --
 --
 function LoveAnimation:resetAnimation()
@@ -283,8 +296,8 @@ local _CheckCollision = function(ax1,ay1,aw,ah, bx1,by1,bw,bh)
 end
 
 --
---
---
+-- @brief Checks for a collision between the sprite quad and the specified rectangle
+-- @return true if the two quads intersect, false otherwise
 --
 function LoveAnimation:intersects(x,y,width,height)
 	local h = height or 1
@@ -301,7 +314,7 @@ function LoveAnimation:intersects(x,y,width,height)
 end
 
 --
---
+-- @brief Switches the pause 
 --
 --
 function LoveAnimation:togglePause()
@@ -309,7 +322,7 @@ function LoveAnimation:togglePause()
 end
 
 --
---
+-- @brief Pauses the animation
 --
 --
 function LoveAnimation:pause()
@@ -317,7 +330,7 @@ function LoveAnimation:pause()
 end
 
 --
---
+-- @brief Unpauses the animation
 --
 --
 function LoveAnimation:unpause()
@@ -325,8 +338,9 @@ function LoveAnimation:unpause()
 end
 
 --
---
---
+-- @brief Sets the sprite's current position
+-- @param x the x coordinate of the sprite
+-- @param y the y coordinate of the sprite
 --
 function  LoveAnimation:setPosition(x, y)
 	self.x = x
@@ -334,40 +348,68 @@ function  LoveAnimation:setPosition(x, y)
 end
 
 --
---
---
+-- @brief Rotates the sprite to the specified angle
+-- @param r rotation angle (according to the love drawing functions)
 --
 function  LoveAnimation:setRotation(r)
 	self.rotation = r
 end
 
 --
---
---
+-- @brief Sets the sprite as visible or invisible
+-- @param v (bool) true if visible, false if invisible
 --
 function  LoveAnimation:setVisibility(v)
 	self.visible = v
 end
 
 --
+-- @brief Sets the origin of the sprite (default is top left corner)
+-- @param ox the x coordinate
+-- @param oy the y coordinate
 --
---
+-- The coordinates are a percentage relative to the sprite.
+-- e.g : setRelativeOrigin(0,0) is the top left corner
+-- e.g : setRelativeOrigin(0.5,0.5) is the center of the sprite
 --
 function LoveAnimation:setRelativeOrigin(ox, oy)
+	-- rename to setAnchorPoint (perhaps clearer)
 	self.relativeOriginX = ox
 	self.relativeOriginY = oy
 end
 
-
-function LoveAnimation:flipHorizontal()
+--
+-- @brief Flips the sprite horizontally
+--
+-- attention : the flips is dependant on the origin
+--
+function LoveAnimation:toggleHorizontalFlip()
 	self.flipX = -1 * self.flipX
 end
 
+--
+-- @brief Flips the sprite horizontally according to bool
+-- @param bool (bool) true if the sprite should be flipped horizontally
+--
+-- attention : the flips is dependant on the origin
+--
+function LoveAnimation:setHorizontalFlip(bool)
+        self.flipX = bool and -1 or 1
+end
+
+--
+-- @brief Gets the width of the current frame
+-- @return the current width
+--
 function LoveAnimation:getFrameWidth()
 	local state_descriptor = self.descriptor.states[self.currentState]
 	return state_descriptor.frameW
 end
 
+--
+-- @brief Gets the height of the current frame
+-- @return the current height
+--
 function LoveAnimation:getFrameHeight()
 	local state_descriptor = self.descriptor.states[self.currentState]
 	return state_descriptor.frameH
@@ -379,9 +421,11 @@ end
 --
 
 --
---
---
---
+-- @brief Adds a listener to the animation. Called when the last frame of a state is reached
+-- @param state (string) The name of the state
+-- @param callback (function) The callback function, recieves the LoveAnimation object as param
+-- Set the callback to nil to stop receiving events
+-- 
 function LoveAnimation:onStateEnd(state, callback)
 
 	self._stateEndCallbacks[state] = callback
@@ -389,8 +433,10 @@ function LoveAnimation:onStateEnd(state, callback)
 end
 
 --
---
---
+-- @brief Adds a listener to the animation. Called when the state starts
+-- @param state (string) The name of the state
+-- @param callback (function) The callback function, recieves the LoveAnimation object as param
+-- Set the callback to nil to stop receiving events
 --
 function LoveAnimation:onStateStart(state, callback)
 

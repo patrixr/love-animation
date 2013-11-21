@@ -15,7 +15,7 @@ return {
 			offsetY = 100,
 			frameW = 100,
 			frameH = 90,
-			nextState = nil,
+			nextState = "jumpEnd",
 			switchDelay = 0.16
 		},
 		jumpEnd = {
