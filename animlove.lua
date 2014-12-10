@@ -149,7 +149,10 @@ function LoveAnimation:update(dt)
 		self.currentFrame = self.currentFrame + 1
 		if self.currentFrame >= state_descriptor.frameCount then
 			-- last frame reached, set next state
-
+			if self._stateEndCallbacks[self.currentState] then
+				self._stateEndCallbacks[self.currentState](self)
+			end
+			
 			if not state_descriptor.nextState then
 				self.currentFrame = state_descriptor.frameCount - 1
 				self.tick = 0
@@ -157,11 +160,8 @@ function LoveAnimation:update(dt)
 			end
 
 			self.currentFrame = 0
+
 			--callbacks
-			if self._stateEndCallbacks[self.currentState] then
-				self._stateEndCallbacks[self.currentState](self)
-			end
-			
 			if state_descriptor.nextState ~= self.currentState and
 				self._stateStartCallbacks[state_descriptor.nextState] then
 				self._stateStartCallbacks[state_descriptor.nextState](self)
@@ -181,7 +181,7 @@ end
 -- @brief Draws the sprite on the screen. Called in the drawing loop
 --
 --
-function LoveAnimation:draw()
+function LoveAnimation:draw(scaleX, scaleY)
 
 	if not self.visible then
 		return
@@ -197,8 +197,8 @@ function LoveAnimation:draw()
 	if not state_descriptor.quads[self.currentFrame] then
 		-- the quad for the current frame has not been created
 		quad = love.graphics.newQuad(
-				self.currentFrame * state_descriptor.frameW,
-				state_descriptor.offsetY,
+				(state_descriptor.offsetX or 0) + (self.currentFrame * state_descriptor.frameW),
+				state_descriptor.offsetY or 0,
 				state_descriptor.frameW,
 				state_descriptor.frameH,
 				self.texture:getWidth(),
@@ -209,13 +209,13 @@ function LoveAnimation:draw()
 		quad = state_descriptor.quads[self.currentFrame]
 	end
 
-	love.graphics.drawq(self.texture,
+	love.graphics.draw(self.texture,
 		quad,
 		self.x,
 		self.y,
 		self.rotation,
-		self.flipX, -- negative scale to flip
-		1, -- scale
+		self.flipX * (scaleX or 1), -- negative scale to flip
+		scaleY or 1, -- scale
 		self.relativeOriginX * state_descriptor.frameW,
 		self.relativeOriginY * state_descriptor.frameH,
 		0,0)
@@ -314,7 +314,7 @@ function LoveAnimation:intersects(x,y,width,height)
 end
 
 --
--- @brief Switches the pause 
+-- @brief Switches the pause
 --
 --
 function LoveAnimation:togglePause()
@@ -415,7 +415,14 @@ function LoveAnimation:getFrameHeight()
 	return state_descriptor.frameH
 end
 
-
+--
+-- @brief Gets width & height of the current frame
+-- @return current dimension
+--
+function LoveAnimation:getFrameDimension()
+	local state_descriptor = self.descriptor.states[self.currentState]
+	return state_descriptor.frameW, state_descriptor.frameH
+end
 --
 -- EVENTS
 --
@@ -425,11 +432,9 @@ end
 -- @param state (string) The name of the state
 -- @param callback (function) The callback function, recieves the LoveAnimation object as param
 -- Set the callback to nil to stop receiving events
--- 
+--
 function LoveAnimation:onStateEnd(state, callback)
-
 	self._stateEndCallbacks[state] = callback
-
 end
 
 --
