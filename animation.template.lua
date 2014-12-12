@@ -46,10 +46,11 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 	(State)
 	Each state contains the following members ->
-		frameCount : the number of frames on the line (aka the state)
+		frameCount : the number of frames in the state
+		offsetX : starting from the left, the position (in px) of the first frame of the state (aka on the line)
 		offsetY : starting from the top, the position of the line (px)
-		framwW : the width of each frame on the line
-		frameH : the height of each frame on the line
+		framwW : the width of each frame in the state
+		frameH : the height of each frame in the state
 		nextState : the state which will follow after the last frame is reached
 		switchDelay : the time between each frame (seconds as floating point)
 
@@ -63,6 +64,7 @@ return {
 		-- 1st line
 		running = { -- the name of the state is arbitrary
 			frameCount = 3,
+			offsetX = 0,
 			offsetY = 0,
 			frameW = 100,
 			frameH = 100,
@@ -72,6 +74,7 @@ return {
 		-- 2nd line
 		jump = {
 			frameCount = 3,
+			offsetX = 0,
 			offsetY = 100,
 			frameW = 100,
 			frameH = 150, -- the frame height can change between states
@@ -81,6 +84,7 @@ return {
 		-- 3rd line
 		attack = {
 			frameCount = 3,
+			offsetX = 0,
 			offsetY = 250, 
 			frameW = 100,
 			frameH = 100,
