@@ -338,6 +338,18 @@ function LoveAnimation:unpause()
 end
 
 --
+-- @brief Get the sprite's current position and size
+--
+function  LoveAnimation:getGeometry()
+	return {
+		x = self.x,
+		y = self.y,
+		width = self:getFrameWidth(),
+		height = self:getFrameHeight()
+	}
+end
+
+--
 -- @brief Sets the sprite's current position
 -- @param x the x coordinate of the sprite
 -- @param y the y coordinate of the sprite
@@ -448,5 +460,3 @@ function LoveAnimation:onStateStart(state, callback)
 	self._stateStartCallbacks[state] = callback
 
 end
-
-
