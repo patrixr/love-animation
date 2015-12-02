@@ -31,8 +31,6 @@ end
 function love.keypressed(key)
 	if key == 'escape' then
 		love.event.push('quit')
-	elseif key == "up" then
-		anim:setState("jumpStart")
 	end
 end
 
