@@ -251,6 +251,18 @@ function LoveAnimation:getCurrentState()
 end
 
 --
+-- @brief Gets the list of all states
+-- @return (array) the list of all possible states
+--
+function LoveAnimation:getAllStates()
+	local states = {}
+	for state in pairs(self.descriptor.states) do
+		table.insert(states, state)
+	end
+	return states
+end
+
+--
 -- @brief Sets the frame of the animation state
 -- @param f (integer) the frame number
 --
