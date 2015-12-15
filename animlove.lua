@@ -95,7 +95,13 @@ end
 -- @return the animation object
 --
 function LoveAnimation.new(filepath, imagePath)
+	local new_anim = {}
+	setmetatable(new_anim, LoveAnimation)
+	new_anim:init(filepath, imagePath)
+	return new_anim
+end
 
+function LoveAnimation:init(filepath, imagePath)
 	local desc = nil
 	if __loadedDescriptors[filepath] then
 		desc = __loadedDescriptors[filepath]
@@ -106,14 +112,10 @@ function LoveAnimation.new(filepath, imagePath)
 		__loadedDescriptors[filepath] = desc;
 	end
 
-	local new_anim = {}
-	setmetatable(new_anim, LoveAnimation)
-	new_anim.filepath = filepath
-	new_anim.descriptor = desc
-	new_anim.texture = imagePath and love.graphics.newImage(imagePath) or love.graphics.newImage(desc.imageSrc)
-	new_anim:resetAnimation()
-
-	return new_anim
+	self.filepath = filepath
+	self.descriptor = desc
+	self.texture = imagePath and love.graphics.newImage(imagePath) or love.graphics.newImage(desc.imageSrc)
+	self:resetAnimation()
 end
 
 --
