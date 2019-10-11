@@ -5,7 +5,9 @@
 --
 --
 
-require('animlove')
+package.path = package.path .. ";../?.lua"
+require('../animation')
+
 local anim = nil
 local states = nil
 local buttonWidth = 200
@@ -13,7 +15,7 @@ local buttonHeight = 50
 
 function love.load(arg)
 	love.graphics.setBackgroundColor({0, 0, 0})
-	
+
 	local file = 'sprites/animation1.lua'
 	for i, param in ipairs(arg) do
 		if string.find(param, ".lua") then
@@ -21,7 +23,7 @@ function love.load(arg)
 			break
 		end
 	end
-	
+
 	print("Loading animation file : " ..  file)
 	anim = LoveAnimation.new(file)
 	anim:setSpeedMultiplier(1)

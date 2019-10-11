@@ -151,10 +151,6 @@ function LoveAnimation:update(dt)
 		self.currentFrame = self.currentFrame + 1
 		if self.currentFrame >= state_descriptor.frameCount then
 			-- last frame reached, set next state
-			if self._stateEndCallbacks[self.currentState] then
-				self._stateEndCallbacks[self.currentState](self)
-			end
-			
 			if not state_descriptor.nextState then
 				self.currentFrame = state_descriptor.frameCount - 1
 				self.tick = 0
@@ -164,9 +160,13 @@ function LoveAnimation:update(dt)
 			self.currentFrame = 0
 
 			--callbacks
-			if state_descriptor.nextState ~= self.currentState and
-				self._stateStartCallbacks[state_descriptor.nextState] then
-				self._stateStartCallbacks[state_descriptor.nextState](self)
+			if state_descriptor.nextState ~= self.currentState then
+				if self._stateEndCallbacks[self.currentState] then
+					self._stateEndCallbacks[self.currentState](self, self.currentState)
+				end
+				if self._stateStartCallbacks[state_descriptor.nextState] then
+					self._stateStartCallbacks[state_descriptor.nextState](self, state_descriptor.nextState)
+				end
 			end
 
 			self.currentState = state_descriptor.nextState
@@ -230,16 +230,22 @@ end
 -- e.g anim:setState("jump")
 --
 function LoveAnimation:setState(state)
+	local current = self.currentState
+	local next 		= state
 
-	if self.descriptor.states[state] then
+	if self.descriptor.states[next] then
+		if state ~= current then
+			if self._stateEndCallbacks[current] then
+				self._stateEndCallbacks[current](self, current)
+			end
+			if self._stateStartCallbacks[next] then
+				self._stateStartCallbacks[next](self, next)
+			end
+		end
+
 		self.currentState = state
 		self.tick = 0
 		self.currentFrame = 0
-
-		if state ~= self.currentState and self._stateStartCallbacks[state] then
-			self._stateStartCallbacks[state]()
-		end
-
 	end
 
 end
@@ -470,7 +476,5 @@ end
 -- Set the callback to nil to stop receiving events
 --
 function LoveAnimation:onStateStart(state, callback)
-
 	self._stateStartCallbacks[state] = callback
-
 end
