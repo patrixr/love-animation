@@ -88,6 +88,7 @@ function doSomething()
 end
 
 anim:onStateStart('jumpStart', doSomething)
+```
 
 ### Cloning the animation
 
